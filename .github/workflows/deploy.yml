@@ -1,0 +1,415 @@
+name: 京永 MES 系統自動化部署
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Setup environment and cleanup
+        run: |
+          echo "=== Environment Setup ==="
+          echo "Current working directory: $(pwd)"
+          echo "Current user: $(whoami)"
+          echo "Available disk space:"
+          df -h
+
+          # 驗證 Docker 可用性
+          echo "Docker version: $(docker --version)"
+          echo "Docker Compose version: $(docker compose version)"
+
+      - name: Stop existing containers
+        run: |
+          echo "=== Stopping existing containers ==="
+          cd $HOME/jingyong || echo "No existing jingyong directory"
+          if [ -f "docker-compose.yml" ]; then
+            docker compose down --remove-orphans || echo "No containers to stop"
+          fi
+
+          # 清理相關容器
+          if [ "$(docker ps -q -f name=Jingyong-MES)" ]; then
+            echo "Stopping Jingyong-MES related containers..."
+            docker stop $(docker ps -q -f name=Jingyong-MES) || true
+            docker rm $(docker ps -aq -f name=Jingyong-MES) || true
+          fi
+
+          echo "Containers stopped successfully"
+
+      - name: Clean and prepare directory
+        run: |
+          echo "=== Cleaning jingyong directory ==="
+
+          # 備份 backend/.env 文件（如果存在）
+          if [ -f "$HOME/jingyong/backend/.env" ]; then
+            cp $HOME/jingyong/backend/.env /tmp/backend.env.backup
+            echo "Backend .env backed up"
+          fi
+
+          # 清空 jingyong 目錄但保留目錄本身
+          if [ -d "$HOME/jingyong" ]; then
+            rm -rf $HOME/jingyong/*
+            rm -rf $HOME/jingyong/.*  2>/dev/null || true
+            echo "jingyong directory cleaned"
+          else
+            mkdir -p $HOME/jingyong
+            echo "jingyong directory created"
+          fi
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          clean: true
+
+      - name: Copy code to target directory
+        run: |
+          echo "=== Copying code to target directory ==="
+
+          # 複製所有文件到目標目錄
+          cp -r . $HOME/jingyong/
+
+          echo "Code copied to $HOME/jingyong"
+          echo "Files in target directory:"
+          ls -la $HOME/jingyong
+
+      - name: Setup environment files
+        run: |
+          echo "=== Setting up environment files ==="
+
+          cd $HOME/jingyong
+
+          # 創建根目錄 .env 文件（前端用）
+          # 使用 'EOF' 防止 shell 展開 $ 符號
+          cat > .env << 'ENVEOF'
+          APP_PORT=${{ secrets.APP_PORT }}
+          NODE_ENV=production
+          ENVEOF
+
+          echo "Root .env file created"
+
+          # 創建 backend/.env 文件（後端資料庫連線用）
+          # 使用 'EOF' 防止密碼中的 $ 被當成變數
+          cat > backend/.env << 'ENVEOF'
+          PORT=3000
+          NODE_ENV=production
+          DB_SERVER=${{ secrets.DB_SERVER }}
+          DB_PORT=${{ secrets.DB_PORT }}
+          DB_USER=${{ secrets.DB_USER }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          DB_DATABASE=${{ secrets.DB_DATABASE }}
+          DB_ENCRYPT=${{ secrets.DB_ENCRYPT }}
+          ENVEOF
+
+          echo "Backend .env file created"
+          chmod 600 backend/.env
+
+          # 創建 VPN 設定檔
+          cat > backend/vpn/vpn.conf << 'VPNEOF'
+          host = ${{ secrets.VPN_HOST }}
+          port = ${{ secrets.VPN_PORT }}
+          username = ${{ secrets.VPN_USERNAME }}
+          password = ${{ secrets.VPN_PASSWORD }}
+          trusted-cert = ${{ secrets.VPN_TRUSTED_CERT }}
+          set-dns = 0
+          pppd-use-peerdns = 0
+          VPNEOF
+
+          echo "VPN config file created"
+          chmod 600 backend/vpn/vpn.conf
+
+          echo "Environment files setup completed"
+
+      - name: Create deploy script
+        run: |
+          echo "=== Creating deploy.sh ==="
+
+          cd $HOME/jingyong
+
+          # 創建 deploy.sh
+          cat > deploy.sh << 'EOF'
+          #!/bin/bash
+          echo "Stopping old containers..."
+          docker compose -f docker-compose.yml down
+          echo "Building new images..."
+          docker compose -f docker-compose.yml build --no-cache
+          echo "Starting production containers..."
+          docker compose -f docker-compose.yml up -d
+          echo "Done!"
+          EOF
+
+          # 設定執行權限
+          chmod +x deploy.sh
+
+          echo "deploy.sh created:"
+          cat deploy.sh
+
+      - name: Verify files and permissions
+        run: |
+          echo "=== Verifying deployment files ==="
+
+          cd $HOME/jingyong
+
+          echo "Files in jingyong directory:"
+          ls -la
+
+          echo ""
+          echo "Files in backend directory:"
+          ls -la backend/
+
+          echo "Checking deploy.sh:"
+          if [ -f "deploy.sh" ]; then
+            ls -la deploy.sh
+            echo "deploy.sh found and executable"
+          else
+            echo "ERROR: deploy.sh not found"
+            exit 1
+          fi
+
+          echo "Checking docker-compose.yml:"
+          if [ -f "docker-compose.yml" ]; then
+            echo "docker-compose.yml found"
+          else
+            echo "ERROR: docker-compose.yml not found"
+            exit 1
+          fi
+
+          echo "Checking frontend Dockerfile:"
+          if [ -f "Dockerfile" ]; then
+            echo "Dockerfile found"
+          else
+            echo "ERROR: Dockerfile not found"
+            exit 1
+          fi
+
+          echo "Checking backend Dockerfile:"
+          if [ -f "backend/Dockerfile" ]; then
+            echo "backend/Dockerfile found"
+          else
+            echo "ERROR: backend/Dockerfile not found"
+            exit 1
+          fi
+
+          echo "Checking nginx.conf:"
+          if [ -f "nginx.conf" ]; then
+            echo "nginx.conf found"
+          else
+            echo "ERROR: nginx.conf not found"
+            exit 1
+          fi
+
+          echo "Checking root .env file:"
+          if [ -f ".env" ]; then
+            echo ".env file present"
+          else
+            echo "ERROR: .env file missing"
+            exit 1
+          fi
+
+          echo "Checking backend .env file:"
+          if [ -f "backend/.env" ]; then
+            echo "backend/.env file present (permissions: $(stat -c %a backend/.env))"
+          else
+            echo "ERROR: backend/.env file missing"
+            exit 1
+          fi
+
+          echo "Checking VPN config file:"
+          if [ -f "backend/vpn/vpn.conf" ]; then
+            echo "backend/vpn/vpn.conf file present (permissions: $(stat -c %a backend/vpn/vpn.conf))"
+          else
+            echo "ERROR: backend/vpn/vpn.conf file missing"
+            exit 1
+          fi
+
+          echo "Checking backend entrypoint:"
+          if [ -f "backend/vpn/entrypoint.sh" ]; then
+            echo "backend/vpn/entrypoint.sh found"
+          else
+            echo "ERROR: backend/vpn/entrypoint.sh not found"
+            exit 1
+          fi
+
+      - name: Execute deployment
+        run: |
+          echo "=== Executing deployment ==="
+
+          cd $HOME/jingyong
+
+          echo "Running deploy.sh with detailed output..."
+          bash -x ./deploy.sh 2>&1 | tee deploy.log
+
+          echo ""
+          echo "Deployment script completed"
+          echo ""
+          echo "Checking Docker images created:"
+          docker images | grep -i jingyong || echo "Warning: No Jingyong images found yet"
+          echo ""
+          echo "Checking if containers started..."
+          docker compose ps -a
+
+      - name: Post-deployment verification
+        run: |
+          echo "=== Post-deployment verification ==="
+
+          cd $HOME/jingyong
+
+          # 檢查容器狀態（包括已停止的）
+          echo "All containers (including stopped):"
+          docker compose ps -a
+
+          # 等待服務啟動
+          echo "Waiting for services to be ready..."
+          sleep 25
+
+          # 再次檢查容器狀態
+          echo "Container status after waiting:"
+          docker compose ps -a
+
+          # 檢查應用程式健康狀態
+          FRONTEND_UP=$(docker compose ps frontend | grep -c "Up" || echo "0")
+          BACKEND_UP=$(docker compose ps backend | grep -c "Up" || echo "0")
+
+          if [ "$FRONTEND_UP" -gt 0 ] && [ "$BACKEND_UP" -gt 0 ]; then
+            echo "Deployment successful! Both services are running."
+
+            echo ""
+            echo "Container details:"
+            docker compose ps
+
+            echo ""
+            echo "Recent backend logs:"
+            docker compose logs --tail=15 backend || echo "Backend logs not available"
+
+            echo ""
+            echo "Recent frontend logs:"
+            docker compose logs --tail=10 frontend || echo "Frontend logs not available"
+
+            # 取得應用程式端口
+            APP_PORT=$(grep APP_PORT .env | cut -d '=' -f2)
+            APP_PORT=${APP_PORT:-8080}
+
+            echo ""
+            echo "Application should be accessible at:"
+            echo "  http://localhost:${APP_PORT}"
+            echo "  http://$(hostname -I | awk '{print $1}'):${APP_PORT}"
+
+            # 測試健康檢查端點
+            echo ""
+            echo "Testing frontend health endpoint..."
+            sleep 5
+            curl -f http://localhost:${APP_PORT}/health || echo "Frontend health check endpoint not responding yet"
+
+            echo ""
+            echo "Testing backend via API proxy..."
+            curl -f http://localhost:${APP_PORT}/api/bom || echo "Backend API not responding yet (may be normal if no data)"
+
+          else
+            echo "ERROR: One or more containers are not running properly"
+            echo ""
+            echo "=== Debugging Information ==="
+
+            echo "1. Container status:"
+            docker compose ps -a
+
+            echo ""
+            echo "2. All Docker images:"
+            docker images
+
+            echo ""
+            echo "3. Jingyong related images:"
+            docker images | grep -i jingyong || echo "No Jingyong images found"
+
+            echo ""
+            echo "4. Backend container logs (last 100 lines):"
+            docker compose logs --tail=100 backend || echo "No backend logs available"
+
+            echo ""
+            echo "5. Frontend container logs (last 100 lines):"
+            docker compose logs --tail=100 frontend || echo "No frontend logs available"
+
+            echo ""
+            echo "6. Docker compose config:"
+            docker compose config
+
+            echo ""
+            echo "7. Root environment file (without secrets):"
+            cat .env
+
+            echo ""
+            echo "8. Build log (last 100 lines):"
+            tail -100 deploy.log || echo "No deploy log available"
+
+            echo ""
+            echo "9. Checking for build errors:"
+            grep -i "error" deploy.log || echo "No explicit errors found in deploy log"
+
+            exit 1
+          fi
+
+      - name: Clean GitHub Actions workspace after deployment
+        if: always()
+        run: |
+          echo "=== Cleaning GitHub Actions workspace after deployment ==="
+          cd $GITHUB_WORKSPACE
+          rm -rf * .[^.]* 2>/dev/null || true
+          echo "Workspace cleaned after deployment"
+
+      - name: Final cleanup
+        run: |
+          echo "=== Final cleanup ==="
+
+          # 顯示清理前的磁盤使用情況
+          echo "Disk usage before cleanup:"
+          df -h | grep -E "Filesystem|/$" || df -h
+
+          echo ""
+          echo "Docker images before cleanup:"
+          docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}\t{{.CreatedAt}}" | head -20
+
+          echo ""
+          echo "Cleaning Docker resources..."
+
+          # 1. 清理懸空鏡像（沒有標籤的 <none> 鏡像）
+          echo "Removing dangling images..."
+          docker image prune -f
+
+          # 2. 清理舊的 build cache（保留最近 24 小時的）
+          echo "Removing old build cache..."
+          docker builder prune -f --filter "until=24h" || echo "Builder cache cleanup completed"
+
+          # 3. 只保留最近的專案鏡像，刪除舊版本
+          echo "Cleaning old project images..."
+          OLD_IMAGES=$(docker images --filter "reference=*jingyong*" --format "{{.ID}}" | tail -n +3)
+          if [ ! -z "$OLD_IMAGES" ]; then
+            echo "Found old project images to remove:"
+            docker images --filter "reference=*jingyong*" | tail -n +3
+            # 保留最新的2個版本
+            echo "$OLD_IMAGES" | xargs -r docker rmi -f 2>/dev/null || echo "Some images are in use"
+          else
+            echo "No old project images to remove"
+          fi
+
+          echo ""
+          echo "Cleanup completed!"
+
+          # 顯示清理後的磁盤使用情況
+          echo ""
+          echo "Disk usage after cleanup:"
+          df -h | grep -E "Filesystem|/$" || df -h
+
+          echo ""
+          echo "Docker images after cleanup:"
+          docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}\t{{.CreatedAt}}" | head -20
+
+          echo ""
+          echo "Deployment completed successfully!"
+          echo "Working directory: $HOME/jingyong"
+
+          # 顯示最終狀態
+          cd $HOME/jingyong
+          echo ""
+          echo "Final container status:"
+          docker compose ps

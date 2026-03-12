@@ -1,0 +1,24 @@
+關於新料號建立、屬性組維護、帳號管理介面, 這三個頁面都有更新。請直接參考以下 3 份規格文檔以及原型進行開發：
+
+ 原型與文檔：
+
+原型： https://3t5n5s.axshare.com/?g=4
+
+新料號建立： https://github.com/mobinice/proddoc_jinyun/blob/main/part-number-creation-spec.md
+
+帳號管理： https://github.com/mobinice/proddoc_jinyun/blob/main/accountmanage-spec.md
+
+屬性組維護： https://github.com/mobinice/proddoc_jinyun/blob/main/attributegroup-spec.md
+
+串接機制：
+目前「屬性組」與「料號建立」頁面透過 localStorage["JY_ATTR_V3_FINAL"] 傳遞 JSON 資料。若資料不存在，頁面會自動 fallback 回測試資料，細節見文檔 3.2 節。
+
+ 後續工作 (Mock 轉 API)：
+目前均為純前端模擬，需請你協助開發以下 API：
+
+流水號：轉為後端取號 (POST /api/serial/next)。
+SAP：串接實體 BAPI/RFC。
+資料清單：屬性組、工廠別、BOM 清單改為 API 獲取。
+帳號管理：需完整 CRUD 功能。
+
+詳細的 API Request/Response 格式，我已經寫在**「新料號建立規格」第 9 節**，再麻煩你看一下。

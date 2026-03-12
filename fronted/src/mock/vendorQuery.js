@@ -1,0 +1,55 @@
+export function getVendorQueryData() {
+  return [
+    {
+      ser: 1,
+      poType: 'B021',
+      poNum: 'T2C4121-03',
+      cin: '0001',
+      unboxingDate: '20251201',
+      partNumber: '19B000A0000007',
+      partName: 'PROMT R2B --',
+      specification: 'DC-19 1KW***',
+      purchaseQty: 6.00,
+      undeliveredQty: 6.00,
+      unit: 'PC',
+      currency: 'NTD',
+      unitPrice: 80.00,
+      amount: 50400.00,
+      manufacturerPartNo: '',
+      estimatedShipments: 630,
+      quantityPerBox: 300,
+      size: '',
+      model: '',
+      color: '',
+      netWeightPerBox: 0.000,
+      grossWeightPerBox: 0.000,
+      volumePerBox: 0.000
+    },
+    {
+      ser: 2,
+      poType: 'B021',
+      poNum: 'T2C4121-03',
+      cin: '0002',
+      unboxingDate: '20251201',
+      partNumber: '19B000A0000007',
+      partName: 'DDR4 R2B --',
+      specification: 'DC-25 1KW***',
+      purchaseQty: 6.00,
+      undeliveredQty: 6.00,
+      unit: 'PC',
+      currency: 'NTD',
+      unitPrice: 171.00,
+      amount: 108000.00,
+      manufacturerPartNo: '',
+      estimatedShipments: 630,
+      quantityPerBox: 300,
+      size: '',
+      model: '',
+      color: '',
+      netWeightPerBox: 0.000,
+      grossWeightPerBox: 0.000,
+      volumePerBox: 0.000
+    }
+  ]
+}
+

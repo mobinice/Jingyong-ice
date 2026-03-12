@@ -1,0 +1,76 @@
+services:
+  # ========== 前端服務 (Nginx) ==========
+  frontend:
+    container_name: Jingyong-MES-Frontend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${APP_PORT:-8080}:80"
+    restart: always
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - jingyong-network
+    # 資源限制
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+
+  # ========== 後端服務 (Node.js API + VPN) ==========
+  backend:
+    container_name: Jingyong-MES-Backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - ./backend/.env
+    volumes:
+      # 掛載 .env 文件，避免敏感資訊被打包進映像檔
+      - ./backend/.env:/app/.env:ro
+      # 掛載 VPN 設定（含敏感資訊）
+      - ./backend/vpn/vpn.conf:/app/vpn/vpn.conf:ro
+    # VPN 所需權限（需要 privileged 模式來建立 ppp 通道）
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+    # 健康檢查：VPN + DB + API
+    healthcheck:
+      test: ["CMD", "/app/vpn/healthcheck.sh"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 60s
+    networks:
+      - jingyong-network
+    # 不對外暴露端口，僅供內部網路存取
+    expose:
+      - "3000"
+    # 資源限制
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+networks:
+  jingyong-network:
+    driver: bridge

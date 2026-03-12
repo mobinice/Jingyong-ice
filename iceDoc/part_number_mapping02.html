@@ -1,0 +1,1653 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>New Part Number Creation - 京永</title>
+  <style>
+    :root{
+      --sidebar:#0b6f8a;
+      --sidebar-dark:#075a70;
+      --bg:#f5f7fa;
+      --card:#ffffff;
+      --line:#d9e1ea;
+      --text:#1a2b3c;
+      --muted:#6c7a89;
+      --btn:#0b6f8a;
+      --btn-hover:#075a70;
+      --warn:#b45309;
+      --danger:#b91c1c;
+      --ok:#047857;
+      --chip:#eef6f8;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background:var(--bg);
+      color:var(--text);
+    }
+    .app{
+      display:grid;
+      grid-template-columns: 1fr;
+      min-height:100vh;
+    }
+
+    /* Sidebar（保留樣式也沒差，但已不使用） */
+    .sidebar{
+      background:var(--sidebar);
+      color:#fff;
+      padding:18px 16px;
+    }
+    .welcome{
+      font-size:20px;
+      font-weight:700;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:4px 4px 14px 4px;
+      border-bottom:1px solid rgba(255,255,255,.25);
+      margin-bottom:14px;
+    }
+    .badge{
+      background:#ffcc00;
+      color:#1a2b3c;
+      font-weight:800;
+      padding:2px 8px;
+      border-radius:999px;
+      font-size:12px;
+      line-height:18px;
+    }
+    .section-title{
+      margin:18px 6px 10px;
+      font-size:18px;
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+    .nav a{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 10px;
+      margin:4px 6px;
+      border-radius:8px;
+      color:#eaf6fb;
+      text-decoration:none;
+      font-weight:600;
+      opacity:.95;
+    }
+    .nav a:hover{background:rgba(255,255,255,.12)}
+    .nav a.active{background:rgba(255,255,255,.18)}
+    .nav .icon{
+      width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;
+      border:1px solid rgba(255,255,255,.35);
+      border-radius:4px;
+      font-size:12px;
+    }
+    .logout{
+      position:sticky;
+      top: calc(100vh - 88px);
+      margin:18px 6px 0;
+      border:2px solid rgba(255,255,255,.6);
+      border-radius:10px;
+      text-align:center;
+      padding:12px 10px;
+      font-weight:900;
+      letter-spacing:.5px;
+      cursor:pointer;
+      user-select:none;
+      background:transparent;
+      color:#fff;
+    }
+    .logout:hover{background:rgba(255,255,255,.10)}
+
+    /* Main */
+    .main{
+      padding:18px 22px 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .page-title{
+      font-size:34px;
+      font-weight:900;
+      margin:6px 0 10px;
+      letter-spacing:.2px;
+    }
+
+    /* ✅ 新增：頂部工具列（只加，不影響原本功能） */
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:12px;
+      flex-wrap:wrap;
+      margin: 0 0 12px;
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:12px;
+      box-shadow:0 1px 0 rgba(16,24,40,.03);
+      padding:14px 14px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap:12px 16px;
+      align-items:end;
+    }
+    .field label{
+      display:block;
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:6px;
+      font-weight:700;
+    }
+    .field input,.field select, .field textarea{
+      width:100%;
+      padding:10px 10px;
+      border:1px solid var(--line);
+      border-radius:8px;
+      background:#fff;
+      outline:none;
+      font-size:14px;
+    }
+    .field textarea{min-height:40px; resize:vertical}
+    .field input[readonly], .field select[disabled]{
+      background:#f2f4f7;
+      color:#475467;
+    }
+    .actions{
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      padding-top:8px;
+    }
+    .btn{
+      border:1px solid transparent;
+      background:var(--btn);
+      color:#fff;
+      padding:10px 18px;
+      border-radius:10px;
+      font-weight:800;
+      cursor:pointer;
+    }
+    .btn:hover{background:var(--btn-hover)}
+    .btn.secondary{
+      background:#fff;
+      color:var(--btn);
+      border:1px solid var(--btn);
+    }
+    .btn.secondary:hover{
+      background:#f0fbff;
+    }
+    .btn.danger{
+      background:var(--danger);
+    }
+    .btn.danger:hover{filter:brightness(.95)}
+    .row{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .chips{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .chip{
+      background:var(--chip);
+      border:1px solid #cfe7ee;
+      color:#0b6f8a;
+      padding:6px 10px;
+      border-radius:999px;
+      font-weight:800;
+      font-size:12px;
+    }
+    .chip.selected{
+      background:var(--btn);
+      color:#fff;
+      border-color:var(--btn);
+    }
+    .mono{font-family:var(--mono)}
+    .divider{height:1px;background:var(--line); margin:12px 0}
+    /* Table */
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:13px;
+      margin-top:10px;
+    }
+    th, td{
+      border-bottom:1px solid var(--line);
+      padding:10px 10px;
+      text-align:left;
+      vertical-align:top;
+    }
+    th{
+      font-size:12px;
+      color:#475467;
+      font-weight:900;
+      background:#fafbfc;
+    }
+    tr:hover td{background:#fcfdff}
+    .expander{
+      width:44px;
+      color:#0b6f8a;
+      font-weight:900;
+      cursor:pointer;
+      user-select:none;
+    }
+    .subrow{
+      background:#fbfdff;
+    }
+    .subgrid{
+      display:grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap:12px;
+      padding:12px;
+    }
+    .panel{
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:#fff;
+      padding:12px;
+    }
+    .panel h3{
+      margin:0 0 10px;
+      font-size:14px;
+      font-weight:900;
+      color:#0b6f8a;
+    }
+    .kv{
+      display:grid;
+      grid-template-columns: 160px 1fr;
+      gap:8px 10px;
+      font-size:13px;
+    }
+    .k{color:#667085;font-weight:800}
+    .v{color:#111827}
+    /* Toast/alerts */
+    .alert{
+      border-radius:12px;
+      padding:12px 14px;
+      border:1px solid var(--line);
+      background:#fff;
+      margin-top:12px;
+      display:none;
+    }
+    .alert.show{display:block}
+    .alert.ok{border-color:#a7f3d0;background:#ecfdf5}
+    .alert.warn{border-color:#fde68a;background:#fffbeb}
+    .alert.bad{border-color:#fecaca;background:#fef2f2}
+    .alert .title{
+      font-weight:900;
+      margin-bottom:4px;
+    }
+    .small{font-size:12px;color:#475467}
+    .toggle{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      padding:10px 12px;
+      border:1px dashed #cfe7ee;
+      border-radius:12px;
+      background:#f7fcfe;
+      margin-top:12px;
+    }
+    .toggle input{transform:scale(1.1)}
+    /* Responsive */
+    @media (max-width: 1080px){
+      .app{grid-template-columns: 1fr}
+      .sidebar{position:sticky;top:0;z-index:10}
+      .main{padding:16px}
+      .grid{grid-template-columns: 1fr}
+      .topbar{align-items:stretch}
+    }
+    /* 搜尋式下拉通用樣式 */
+    .search-dropdown { position:relative; }
+    .sd-trigger {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:10px; border:1px solid var(--line); border-radius:8px;
+      background:#fff; cursor:pointer; font-size:14px; min-height:42px;
+      flex-wrap:wrap; gap:4px;
+    }
+    .sd-trigger:focus { outline:2px solid var(--btn); outline-offset:1px; }
+    .sd-tag {
+      background:var(--btn); color:#fff;
+      border-radius:999px; padding:2px 8px;
+      font-size:12px; font-weight:700;
+      display:inline-flex; align-items:center; gap:4px;
+    }
+    .sd-tag .rm { cursor:pointer; font-weight:900; }
+    .sd-arrow { color:var(--muted); flex-shrink:0; }
+    .sd-panel {
+      position:absolute; top:calc(100% + 4px); left:0; right:0;
+      background:#fff; border:1px solid var(--line);
+      border-radius:10px; z-index:200; box-shadow:0 4px 16px rgba(0,0,0,.10);
+    }
+    .sd-search {
+      width:100%; padding:8px 10px;
+      border:none; border-bottom:1px solid var(--line);
+      border-radius:10px 10px 0 0;
+      font-size:13px; outline:none;
+    }
+    .sd-list { max-height:220px; overflow-y:auto; }
+    .sd-item {
+      padding:10px 12px; cursor:pointer; font-size:13px;
+      display:flex; align-items:center; gap:8px;
+    }
+    .sd-item:hover { background:#f0fbff; }
+    .sd-item.checked { font-weight:700; color:var(--btn); }
+    .sd-item .sd-check { width:16px; height:16px; flex-shrink:0; }
+    .sd-empty { padding:10px 12px; color:var(--muted); font-size:13px; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- ✅ 新增：語言 / SAP Template 下拉（不改原流程，只加入口） -->
+    <div class="topbar">
+      <div>
+        <div class="page-title" id="pageTitleText">New Part Number Creation</div>
+      </div>
+      <div class="row" style="align-items:flex-end;">
+        <div class="field" style="width:180px;">
+          <label id="langLabelText">Language</label>
+          <select id="langSel">
+            <option value="zh">中文</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+
+        <div class="field" style="width:240px;">
+          <label id="sapTplLabelText">SAP Template</label>
+          <select id="sapTplSel"></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row" style="justify-content:space-between;">
+        <div class="chips">
+          <span class="chip" id="chipA">本系統產生料號 → 寫入 SAP（模擬）</span>
+          <span class="chip" id="chipB">含「屬性定義值」異動驗證</span>
+        </div>
+        <div class="chips">
+          <span class="chip mono" id="serialInfo">SERIAL: (not generated)</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Top form -->
+      <div class="grid">
+        <div class="field">
+          <label id="lblCreationMethod">Creation Method</label>
+          <select id="creationMethod">
+            <option value="blank" id="optBlank">A. Create Blank Data</option>
+            <option value="copy" id="optCopy">B. Copy Existing BOM</option>
+            <option value="direct" id="optDirect">C. 直接輸入品號</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <div id="existingBomWrap">
+            <label id="lblExistingBom">既有 BOM（複製用）</label>
+            <div id="bomDropdown" class="search-dropdown">
+              <div class="sd-trigger" id="bomTrigger" tabindex="0" style="pointer-events:none;opacity:.6;" aria-disabled="true">
+                <span id="bomDisplay" style="color:var(--muted)">-- 選擇 BOM --</span>
+                <span class="sd-arrow">▾</span>
+              </div>
+              <div class="sd-panel" id="bomPanel" style="display:none">
+                <input class="sd-search" id="bomSearch" placeholder="搜尋 BOM..." autocomplete="off" />
+                <div class="sd-list" id="bomList2"></div>
+              </div>
+            </div>
+          </div>
+          <div id="directPartNoWrap" style="display:none">
+            <label id="lblDirectPartNo">輸入品號</label>
+            <input id="directPartNo" placeholder="輸入既有品號以帶入屬性..." autocomplete="off" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label id="lblAttrGroup">Attribute Group</label>
+          <select id="attrGroup">
+            <option value="GRP-A">GRP-A（1-2-2-1-5）</option>
+            <option value="GRP-B">GRP-B（1-2-2-1-4）</option>
+          </select>
+        </div>
+
+        <div class="field" style="grid-column: span 2;">
+          <label id="lblPartSpec">規格 / 描述</label>
+          <textarea id="partSpec" rows="4" maxlength="2000"
+            placeholder="e.g., 24&quot; x 12.5&quot; / Packaging note"></textarea>
+          <div style="text-align:right; font-size:11px; color:var(--muted); margin-top:3px;">
+            <span id="specCounter">0</span> / 2000
+          </div>
+        </div>
+
+        <div class="field">
+          <label id="lblPreview">Preview New Part No (read-only)</label>
+          <input id="previewPartNo" class="mono" readonly placeholder="(Generate on Confirm)" />
+        </div>
+      </div>
+
+      <!-- 零件特性值（GRP-A） -->
+      <div class="field extra-field" id="wrapVendor" style="display:none; margin-top:12px;">
+        <label id="lblVendor">零件特性值-廠商</label>
+        <input id="fldVendor" placeholder="請輸入廠商名稱" />
+      </div>
+      <!-- 半成品特性值（GRP-B） -->
+      <div class="field extra-field" id="wrapVehicleType" style="display:none; margin-top:12px;">
+        <label id="lblVehicleType">半成品特性值-車種</label>
+        <input id="fldVehicleType" placeholder="請輸入車種" />
+      </div>
+      <div class="field extra-field" id="wrapHeight" style="display:none; margin-top:12px;">
+        <label id="lblHeight">半成品特性值-架高</label>
+        <input id="fldHeight" placeholder="請輸入架高" />
+      </div>
+      <div class="field extra-field" id="wrapColor" style="display:none; margin-top:12px;">
+        <label id="lblColor">半成品特性值-烤漆色</label>
+        <input id="fldColor" placeholder="請輸入烤漆色" />
+      </div>
+      <!-- 建立工廠別 -->
+      <div class="field" style="margin-top:12px; position:relative;">
+        <label id="lblFactory">建立工廠別 *</label>
+        <div id="factoryDropdown" class="search-dropdown">
+          <div class="sd-trigger" id="factoryTrigger" tabindex="0">
+            <span id="factoryDisplay">-- 請選擇工廠別 --</span>
+            <span class="sd-arrow">▾</span>
+          </div>
+          <div class="sd-panel" id="factoryPanel" style="display:none">
+            <input class="sd-search" id="factorySearch" placeholder="搜尋工廠..." autocomplete="off" />
+            <div class="sd-list" id="factoryList"></div>
+          </div>
+        </div>
+        <div class="small" id="factoryHint" style="margin-top:4px;"></div>
+      </div>
+
+      <div class="toggle">
+        <input type="checkbox" id="sapFailToggle" />
+        <div>
+          <div style="font-weight:900;color:#0b6f8a;" id="sapFailTitle">模擬 SAP 寫入失敗</div>
+          <div class="small" id="sapFailHint">打勾後按 Confirm，會走失敗回滾分支（不成立新料號）。</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Attribute inputs -->
+      <div class="row" style="justify-content:space-between; align-items:flex-end;">
+        <div>
+          <div style="font-weight:900; font-size:14px; color:#0b6f8a;" id="attrTitle">Attributes</div>
+          <div class="small" id="attrHint">變更 Attribute Group 會清空已選屬性值並載入新清單（順序/位數）。</div>
+        </div>
+        <div class="row">
+          <button class="btn secondary" id="btnReset">Reset</button>
+          <button class="btn" id="btnConfirm">Confirm</button>
+        </div>
+      </div>
+
+      <table id="attrTable">
+        <thead>
+          <tr>
+            <th style="width:44px;" id="thSeq">Seq</th>
+            <th style="width:180px;" id="thCode">Attribute Code</th>
+            <th id="thMeaning">Meaning</th>
+            <th style="width:120px;" id="thLen">Length</th>
+            <th style="width:220px;" id="thVal">Value (Editable)</th>
+            <th style="width:160px;" id="thStatus">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- rows injected -->
+        </tbody>
+      </table>
+
+      <div id="alertBox" class="alert">
+        <div class="title" id="alertTitle"></div>
+        <div id="alertMsg"></div>
+        <div class="small" id="alertHint" style="margin-top:6px;"></div>
+      </div>
+    </div>
+
+    <!-- Demo "Existing BOM list" -->
+    <div class="card" style="margin-top:14px;">
+      <div style="font-weight:900; font-size:14px; color:#0b6f8a;" id="demoTitle">Demo: Existing BOMs (for Copy)</div>
+      <div class="small" id="demoHint">這區純展示：你可以在 Copy 模式選 BOM，系統會預帶屬性組/屬性值/品名描述。</div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:44px;"></th>
+            <th id="demoThBom">BOM No</th>
+            <th id="demoThProd">Final Product</th>
+            <th id="demoThOrigin">Origin</th>
+            <th id="demoThNote">Note</th>
+          </tr>
+        </thead>
+        <tbody id="bomList"></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<script>
+  /**
+   * ✅ 新增：I18N + SAP Template（只加，不改原本流程）
+   */
+  const I18N = {
+    zh: {
+      pageTitle: "新料號建立（取號）",
+      langLabel: "語言",
+      sapTplLabel: "SAP 模板",
+      chipA: "本系統產生料號 → 寫入 SAP（模擬）",
+      chipB: "含「屬性定義值」異動驗證",
+      creationMethod: "建立方式",
+      optBlank: "A. 建立全新品號",
+      optCopy: "B. 複製現有品號",
+      optDirect: "C. 直接輸入品號",
+      existingBom: "既有 BOM（複製用）",
+      optSelectBom: "-- 選擇 BOM --",
+      attrGroup: "屬性組",
+      lblDirectPartNo: "輸入品號",
+      directPartNoPH: "輸入既有品號以帶入屬性...",
+      partSpec: "規格 / 描述",
+      preview: "新料號預覽（唯讀）",
+      sapFailTitle: "模擬 SAP 寫入失敗",
+      sapFailHint: "打勾後按 Confirm，會走失敗回滾分支（不成立新料號）。",
+      attrTitle: "屬性清單",
+      attrHint: "變更屬性組會清空已選屬性值並載入新清單（順序/位數）。",
+      btnReset: "重置",
+      btnConfirm: "確認",
+      thSeq: "序",
+      thCode: "屬性代碼",
+      thMeaning: "定義",
+      thLen: "長度",
+      thVal: "值（可編輯）",
+      thStatus: "狀態",
+      statusSystem: "系統產生",
+      statusEnabled: "啟用",
+      statusDisabled: "已停用",
+      statusEditable: "可編輯",
+      demoTitle: "示例：可複製的 BOM 清單",
+      demoHint: "這區純展示：你可以在 Copy 模式選 BOM，系統會預帶屬性組/屬性值/品名描述。",
+      demoThBom: "BOM 編號",
+      demoThProd: "成品",
+      demoThOrigin: "產地",
+      demoThNote: "備註",
+      initHintTitle: "提示",
+      initHintMsg: "這是本地可開啟的原型（純前端）。Confirm 會依屬性組規則產生流水碼與新料號，並模擬寫入 SAP。",
+      modeBlankMsg: "目前為「新增空白」模式。請選擇屬性組、填寫屬性值後按 Confirm。",
+      modeCopyMsg: "目前為「複製現有品號 BOM」模式。請先選擇 Existing BOM 以預帶資料。",
+      modeDirectMsg: "目前為「直接輸入品號」模式。輸入料號後系統自動帶入屬性，按 Confirm 產生新料號。",
+      copiedTitle: "已預帶資料",
+      copiedHint: "若你修改 Attribute Group，系統會清空屬性值並要求重選。",
+      groupChangedTitle: "屬性組已變更",
+      groupChangedMsg: "已清空所有屬性值並載入新屬性清單，請重新選擇屬性值。",
+      validateFailTitle: "驗證失敗",
+      preSapFailTitle: "送 SAP 前驗證失敗",
+      preSapFailHint: "請重新選擇屬性值後再按 Confirm。",
+      sapWriteFailTitle: "SAP 寫入失敗（模擬）",
+      sapWriteFailMsg: "SAP 回傳建立失敗，系統已回滾此筆建立（不成立新料號）。",
+      sapWriteFailHint: "注意：流水碼回收策略需在規格明確定義（建議：不占號 / 回收）。",
+      successTitle: "建立成功",
+      successHint: "下一步：寫入 SAP（此版本為模擬），並落地關聯資料與操作日誌。",
+      resetTitle: "已重置",
+      resetMsg: "已清空畫面資料（不影響已產生的流水碼計數）。",
+      serialLabel: "SERIAL: ",
+      parsedTitle: "已帶入屬性值",
+      parsedMsg: "已解析料號，屬性組：",
+      parsedHint: "按 Confirm 產生新流水碼與料號",
+      parseFailTitle: "無法解析料號",
+      parseFailMsg: "請確認品號長度與格式（GRP-A: 11碼, GRP-B: 10碼）",
+      factoryLabel: "建立工廠別 *",
+      errFactory: "請至少選擇一個工廠別",
+      fldVendor: "零件特性值-廠商",
+      fldVehicleType: "半成品特性值-車種",
+      fldHeight: "半成品特性值-架高",
+      fldColor: "半成品特性值-烤漆色",
+      factoryPlaceholder: "-- 請選擇工廠別 --",
+      factorySearchPH: "搜尋工廠...",
+      bomSearchPH: "搜尋 BOM...",
+      noMatchItems: "無符合項目",
+      generateOnConfirm: "（確認後系統產生）",
+      selectOption: "-- 請選擇 --",
+      disabledSuffix: "（已停用）",
+      notGenerated: "(尚未產生)",
+      sapTplSwitchedTitle: "已切換 SAP 模板",
+      sapTplSwitchedMsg: "已更新可用的屬性組清單。請重新選擇屬性值後再建立。",
+      copiedMsg: "已從 {bom} 預帶屬性組、屬性值與規格描述。",
+      newPartGenerated: "新料號已產生：",
+      errMissingAttr: "缺少必填屬性：{code}（{meaning}）",
+      errWrongLen: "{code} 位數需為 {len}，目前為 {curr}",
+      errDisabledOpt: "{code} 選項「{val}」已停用，請重新選擇",
+      specPH: "例：24\" x 12.5\" / 包裝說明",
+      previewPH: "（確認後產生）",
+      fldVendorPH: "請輸入廠商名稱",
+      fldVehicleTypePH: "請輸入車種",
+      fldHeightPH: "請輸入架高",
+      fldColorPH: "請輸入烤漆色",
+      segMeanings: { IDENT:"識別碼", PART:"零件類型", CUST:"客戶碼", RSV:"預留碼", SERIAL:"流水碼（系統產生）" },
+      extraRequired: "{field} 不可為空",
+      moreErrors: "另有 {n} 項問題，請逐一修正。"
+    },
+    en: {
+      pageTitle: "New Part Number Creation",
+      langLabel: "Language",
+      sapTplLabel: "SAP Template",
+      chipA: "Generate part number → write to SAP (simulated)",
+      chipB: "Includes attribute value change validation",
+      creationMethod: "Creation Method",
+      optBlank: "A. Create Blank Data",
+      optCopy: "B. Copy Existing BOM",
+      optDirect: "C. Direct Input Part No.",
+      existingBom: "Existing BOM (for Copy)",
+      optSelectBom: "-- Select BOM --",
+      attrGroup: "Attribute Group",
+      lblDirectPartNo: "Enter Part No.",
+      directPartNoPH: "Enter part no. to prefill attributes...",
+      partSpec: "Spec / Description",
+      preview: "Preview New Part No (read-only)",
+      sapFailTitle: "Simulate SAP write failure",
+      sapFailHint: "If checked, Confirm will go to rollback branch (no new part created).",
+      attrTitle: "Attributes",
+      attrHint: "Changing Attribute Group clears selected values and loads new list (order/length).",
+      btnReset: "Reset",
+      btnConfirm: "Confirm",
+      thSeq: "Seq",
+      thCode: "Attribute Code",
+      thMeaning: "Meaning",
+      thLen: "Length",
+      thVal: "Value (Editable)",
+      thStatus: "Status",
+      statusSystem: "System",
+      statusEnabled: "Enabled",
+      statusDisabled: "Disabled",
+      statusEditable: "Editable",
+      demoTitle: "Demo: Existing BOMs (for Copy)",
+      demoHint: "Display only: choose a BOM in Copy mode to prefill group/values/spec.",
+      demoThBom: "BOM No",
+      demoThProd: "Final Product",
+      demoThOrigin: "Origin",
+      demoThNote: "Note",
+      initHintTitle: "Hint",
+      initHintMsg: "Local demo (front-end only). Confirm generates serial + new part no, then simulates writing to SAP.",
+      modeBlankMsg: "You are in Blank mode. Choose group, fill attributes, then Confirm.",
+      modeCopyMsg: "You are in Copy mode. Select an Existing BOM to prefill data.",
+      modeDirectMsg: "Direct Input mode. Enter a part no. to prefill attributes, then Confirm to generate a new part no.",
+      copiedTitle: "Prefilled",
+      copiedHint: "If you change Attribute Group, values will be cleared and must be re-selected.",
+      groupChangedTitle: "Attribute Group Changed",
+      groupChangedMsg: "All attribute values cleared. Please select values again.",
+      validateFailTitle: "Validation Failed",
+      preSapFailTitle: "Pre-SAP Validation Failed",
+      preSapFailHint: "Please re-select attribute values and Confirm again.",
+      sapWriteFailTitle: "SAP Write Failed (Simulated)",
+      sapWriteFailMsg: "SAP returned failure. This creation has been rolled back (no new part created).",
+      sapWriteFailHint: "Serial recycle policy must be defined (suggest: do not occupy / recycle).",
+      successTitle: "Created",
+      successHint: "Next: write to SAP (simulated), persist relations and audit logs.",
+      resetTitle: "Reset",
+      resetMsg: "Cleared form data (does not affect serial counters).",
+      serialLabel: "SERIAL: ",
+      parsedTitle: "Attributes prefilled",
+      parsedMsg: "Parsed. Attribute Group: ",
+      parsedHint: "Click Confirm to generate new serial and part no.",
+      parseFailTitle: "Cannot parse part no.",
+      parseFailMsg: "Check length/format (GRP-A: 11, GRP-B: 10)",
+      factoryLabel: "Factory *",
+      errFactory: "Please select at least one factory",
+      fldVendor: "Part Characteristic - Vendor",
+      fldVehicleType: "Semi-fin. - Vehicle Type",
+      fldHeight: "Semi-fin. - Height",
+      fldColor: "Semi-fin. - Paint Color",
+      factoryPlaceholder: "-- Select factory --",
+      factorySearchPH: "Search factory...",
+      bomSearchPH: "Search BOM...",
+      noMatchItems: "No matches found",
+      generateOnConfirm: "(Generated on Confirm)",
+      selectOption: "-- Select --",
+      disabledSuffix: " (Disabled)",
+      notGenerated: "(not generated)",
+      sapTplSwitchedTitle: "SAP template switched",
+      sapTplSwitchedMsg: "Attribute group list updated. Please re-select values before creation.",
+      copiedMsg: "Prefilled from {bom}: attr. group, values & spec.",
+      newPartGenerated: "New part number generated: ",
+      errMissingAttr: "Missing required attribute: {code} ({meaning})",
+      errWrongLen: "{code} must be {len} chars, currently {curr}",
+      errDisabledOpt: "{code} option \"{val}\" is disabled, please reselect",
+      specPH: "e.g., 24\" x 12.5\" / Packaging note",
+      previewPH: "(Generated on Confirm)",
+      fldVendorPH: "Enter vendor name",
+      fldVehicleTypePH: "Enter vehicle type",
+      fldHeightPH: "Enter height",
+      fldColorPH: "Enter paint color",
+      segMeanings: { IDENT:"Identifier", PART:"Part Type", CUST:"Customer Code", RSV:"Reserved", SERIAL:"Serial (System)" },
+      extraRequired: "{field} is required",
+      moreErrors: "{n} more issue(s), please fix them."
+    }
+  };
+
+  // ✅ 新增：SAP Template -> 可用 Attribute Group 清單（你可依業主實際模板調整）
+  const SAP_TEMPLATES = [
+    { key:"SAP_MODEL_A", zh:"SAP 模板 A", en:"SAP Template A" },
+    { key:"SAP_MODEL_B", zh:"SAP 模板 B", en:"SAP Template B" },
+    { key:"SAP_MODEL_ALL", zh:"全部模板", en:"All Templates" }
+  ];
+
+  // 模板對應可用屬性組（示例）
+  let TEMPLATE_GROUPS = {
+    SAP_MODEL_A: ["GRP-A"],
+    SAP_MODEL_B: ["GRP-B"],
+    SAP_MODEL_ALL: ["GRP-A","GRP-B"]
+  };
+
+  // ---- AttributeGroup 串接函式 ----
+
+  // 將 {"5":{active:true,desc:"手機"}} 轉成 {optArr:["5-手機"], statusMap:{"5-手機":true}}
+  function convertDictOptions(dictOptions) {
+    const optArr = [];
+    const statusMap = {};
+    for (const [val, info] of Object.entries(dictOptions)) {
+      const label = info.desc ? `${val}-${info.desc}` : val;
+      optArr.push(label);
+      statusMap[label] = !!info.active;
+    }
+    return { optArr, statusMap };
+  }
+
+  // 組出 "GRP-A（1-2-5）" 格式 label
+  function buildGroupLabel(code, segments) {
+    const lengths = segments.map(s => s.len).join('-');
+    return `${code}（${lengths}）`;
+  }
+
+  // 將單一 AttributeGroup 格式 group 轉換成 part_number_mapping 需要的格式
+  function buildDynamicGroup(groupDef, dict) {
+    const optionStatusPatch = {};
+    const segments = groupDef.segments.map((s, idx) => {
+      const seg = {
+        seq: idx + 1,
+        code: s.code,
+        meaning: s.meaning || s.code,
+        length: s.len,
+        type: s.type === 'system' ? 'system' : (s.type === 'input' ? 'input' : 'select'),
+        required: true
+      };
+      if (seg.type === 'select') {
+        const dictEntry = dict[s.code];
+        if (dictEntry && dictEntry.options) {
+          const { optArr, statusMap } = convertDictOptions(dictEntry.options);
+          seg.options = optArr;
+          optionStatusPatch[s.code] = statusMap;
+        } else {
+          seg.options = [];
+        }
+      } else if (seg.type === 'input') {
+        seg.placeholder = s.placeholder || '';
+      }
+      return seg;
+    });
+    const label = buildGroupLabel(groupDef.code, groupDef.segments);
+    const groupEntry = { label, segments, serialLen: groupDef.serialLen || 5 };
+    return { groupEntry, optionStatusPatch };
+  }
+
+  // 從 localStorage 讀取 AttributeGroup 資料，覆寫 GROUPS / OPTION_STATUS / TEMPLATE_GROUPS
+  function loadFromAttributeGroup() {
+    try {
+      const raw = localStorage.getItem('JY_ATTR_V3_FINAL');
+      if (!raw) return;
+      const state = JSON.parse(raw);
+      const activeGroups = Object.values(state.groups || {}).filter(g => g.active);
+      if (activeGroups.length === 0) return;
+
+      const newGroups = {};
+      const newOptionStatus = {};
+      for (const groupDef of activeGroups) {
+        const { groupEntry, optionStatusPatch } = buildDynamicGroup(groupDef, state.dict || {});
+        newGroups[groupDef.code] = groupEntry;
+        Object.assign(newOptionStatus, optionStatusPatch);
+      }
+
+      const allKeys = Object.keys(newGroups);
+      const existingA = TEMPLATE_GROUPS.SAP_MODEL_A.filter(k => newGroups[k]);
+      const existingB = TEMPLATE_GROUPS.SAP_MODEL_B.filter(k => newGroups[k]);
+
+      GROUPS = newGroups;
+      OPTION_STATUS = newOptionStatus;
+      TEMPLATE_GROUPS = {
+        SAP_MODEL_A: existingA.length > 0 ? existingA : allKeys,
+        SAP_MODEL_B: existingB.length > 0 ? existingB : allKeys,
+        SAP_MODEL_ALL: allKeys
+      };
+    } catch (e) {
+      console.warn('[loadFromAttributeGroup] Failed to parse localStorage data, using hardcoded fallback.', e);
+    }
+  }
+
+  // ---- 你原本的資料（不動） ----
+  let GROUPS = {
+    "GRP-A": {
+      label: "GRP-A（1-2-2-1-5）",
+      segments: [
+        { seq: 1, code: "IDENT", meaning: "識別碼", length: 1, type: "select", options: ["5-手機","6-平板","7"], required:true },
+        { seq: 2, code: "PART", meaning: "零件類型", length: 2, type: "select", options: ["A0","B0","C0"], required:true },
+        { seq: 3, code: "CUST", meaning: "客戶碼", length: 2, type: "select", options: ["00","01","02"], required:true },
+        { seq: 4, code: "RSV",  meaning: "預留碼", length: 1, type: "input",  placeholder:"0", required:true },
+        { seq: 5, code: "SERIAL", meaning: "流水碼（系統產生）", length: 5, type: "system", required:true },
+      ],
+      serialLen: 5
+    },
+    "GRP-B": {
+      label: "GRP-B（1-2-2-1-4）",
+      segments: [
+        { seq: 1, code: "IDENT", meaning: "識別碼", length: 1, type: "select", options: ["5-手機","6-平板","7"], required:true },
+        { seq: 2, code: "PART", meaning: "零件類型", length: 2, type: "select", options: ["A0","B0","C0"], required:true },
+        { seq: 3, code: "CUST", meaning: "客戶碼", length: 2, type: "select", options: ["00","01","02"], required:true },
+        { seq: 4, code: "RSV",  meaning: "預留碼", length: 1, type: "input",  placeholder:"0", required:true },
+        { seq: 5, code: "SERIAL", meaning: "流水碼（系統產生）", length: 4, type: "system", required:true },
+      ],
+      serialLen: 4
+    }
+  };
+
+  let OPTION_STATUS = {
+    IDENT: { "5-手機": true, "6-平板": true, "7": true },
+    PART:  { "A0": true, "B0": true, "C0": true },
+    CUST:  { "00": true, "01": true, "02": true }
+  };
+
+  const BOM_PRESETS = {
+    "BOM-1001": {
+      attrGroup: "GRP-A",
+      values: { IDENT:"5-手機", PART:"A0", CUST:"01", RSV:"0" },
+      partSpec: "24\" x 12.5\" / Korea"
+    },
+    "BOM-1002": {
+      attrGroup: "GRP-A",
+      values: { IDENT:"5-手機", PART:"A0", CUST:"01", RSV:"0" },
+      partSpec: "24\" x 12.5\" / Korea / ECN"
+    },
+    "BOM-2001": {
+      attrGroup: "GRP-B",
+      values: { IDENT:"6-平板", PART:"B0", CUST:"02", RSV:"0" },
+      partSpec: "Vietnam line"
+    }
+  };
+
+  // 工廠別選項
+  const FACTORY_OPTIONS = [
+    { code:"TA11", label:"TA11" },
+    { code:"KA11", label:"KA11" },
+    { code:"TV11", label:"TV11" },
+    { code:"VA11", label:"VA11" },
+    { code:"KV21", label:"KV21（待報廢倉）" },
+    { code:"TV21", label:"TV21（待報廢倉）" },
+    { code:"VV21", label:"VV21（待報廢倉）" },
+  ];
+
+  // BOM 選項（搜尋下拉用）
+  const BOM_OPTIONS = [
+    { value:"BOM-1001", label:"BOM-1001 / Model A / Korea" },
+    { value:"BOM-1002", label:"BOM-1002 / Model A (Rev.B) / Korea" },
+    { value:"BOM-2001", label:"BOM-2001 / Model B / Vietnam" },
+  ];
+
+  // 屬性組 → 額外特性值欄位映射
+  const GROUP_EXTRA_FIELDS = {
+    "GRP-A": ["vendor"],
+    "GRP-B": ["vehicleType","height","color"]
+  };
+
+  const EXTRA_FIELD_DEF = {
+    vendor:      { id:"fldVendor",      lblId:"lblVendor",      i18nKey:"fldVendor",      phKey:"fldVendorPH" },
+    vehicleType: { id:"fldVehicleType", lblId:"lblVehicleType", i18nKey:"fldVehicleType", phKey:"fldVehicleTypePH" },
+    height:      { id:"fldHeight",      lblId:"lblHeight",      i18nKey:"fldHeight",      phKey:"fldHeightPH" },
+    color:       { id:"fldColor",       lblId:"lblColor",       i18nKey:"fldColor",       phKey:"fldColorPH" },
+  };
+
+  // UI elements
+  const creationMethod = document.getElementById("creationMethod");
+  const attrGroup = document.getElementById("attrGroup");
+  const partSpec = document.getElementById("partSpec");
+  const directPartNo = document.getElementById("directPartNo");
+  const previewPartNo = document.getElementById("previewPartNo");
+  const attrTableBody = document.querySelector("#attrTable tbody");
+  const btnConfirm = document.getElementById("btnConfirm");
+  const btnReset = document.getElementById("btnReset");
+  const serialInfo = document.getElementById("serialInfo");
+  const sapFailToggle = document.getElementById("sapFailToggle");
+
+  const alertBox = document.getElementById("alertBox");
+  const alertTitle = document.getElementById("alertTitle");
+  const alertMsg = document.getElementById("alertMsg");
+  const alertHint = document.getElementById("alertHint");
+
+  // ✅ 新增：下拉
+  const langSel = document.getElementById("langSel");
+  const sapTplSel = document.getElementById("sapTplSel");
+
+  // ✅ 新增：目前語言/模板（localStorage 記住）
+  const LS_LANG = "JY_LANG_NEW_PART";
+  const LS_SAPTPL = "JY_SAPTPL_NEW_PART";
+  let currentLang = localStorage.getItem(LS_LANG) || "zh";
+  let currentTpl  = localStorage.getItem(LS_SAPTPL) || "SAP_MODEL_ALL";
+
+  // Current working model
+  let model = {
+    group: attrGroup.value,
+    values: {},
+    serial: "",
+    preview: "",
+    factories: new Set(),
+    extra: {}
+  };
+
+  // ---------- i18n apply ----------
+  function T(){ return I18N[currentLang] || I18N.zh; }
+
+  function applyTexts(){
+    hideAlert();
+    const t = T();
+
+    document.getElementById("pageTitleText").textContent = t.pageTitle;
+    document.getElementById("langLabelText").textContent = t.langLabel;
+    document.getElementById("sapTplLabelText").textContent = t.sapTplLabel;
+
+    document.getElementById("chipA").textContent = t.chipA;
+    document.getElementById("chipB").textContent = t.chipB;
+
+    document.getElementById("lblCreationMethod").textContent = t.creationMethod;
+    document.getElementById("optBlank").textContent = t.optBlank;
+    document.getElementById("optCopy").textContent = t.optCopy;
+    document.getElementById("optDirect").textContent = t.optDirect;
+
+    document.getElementById("lblExistingBom").textContent = t.existingBom;
+    document.getElementById("lblDirectPartNo").textContent = t.lblDirectPartNo;
+    document.getElementById("directPartNo").placeholder = t.directPartNoPH;
+
+    document.getElementById("lblAttrGroup").textContent = t.attrGroup;
+    document.getElementById("lblPartSpec").textContent = t.partSpec;
+    document.getElementById("lblPreview").textContent = t.preview;
+
+    document.getElementById("lblFactory").textContent = t.factoryLabel;
+
+    document.getElementById("sapFailTitle").textContent = t.sapFailTitle;
+    document.getElementById("sapFailHint").textContent  = t.sapFailHint;
+
+    document.getElementById("attrTitle").textContent = t.attrTitle;
+    document.getElementById("attrHint").textContent  = t.attrHint;
+
+    btnReset.textContent   = t.btnReset;
+    btnConfirm.textContent = t.btnConfirm;
+
+    document.getElementById("thSeq").textContent = t.thSeq;
+    document.getElementById("thCode").textContent = t.thCode;
+    document.getElementById("thMeaning").textContent = t.thMeaning;
+    document.getElementById("thLen").textContent = t.thLen;
+    document.getElementById("thVal").textContent = t.thVal;
+    document.getElementById("thStatus").textContent = t.thStatus;
+
+    document.getElementById("demoTitle").textContent = t.demoTitle;
+    document.getElementById("demoHint").textContent  = t.demoHint;
+    document.getElementById("demoThBom").textContent = t.demoThBom;
+    document.getElementById("demoThProd").textContent = t.demoThProd;
+    document.getElementById("demoThOrigin").textContent = t.demoThOrigin;
+    document.getElementById("demoThNote").textContent = t.demoThNote;
+
+    document.getElementById("lblVendor").textContent = t.fldVendor;
+    document.getElementById("lblVehicleType").textContent = t.fldVehicleType;
+    document.getElementById("lblHeight").textContent = t.fldHeight;
+    document.getElementById("lblColor").textContent = t.fldColor;
+    document.getElementById("factorySearch").placeholder = t.factorySearchPH;
+    document.getElementById("bomSearch").placeholder = t.bomSearchPH;
+    document.getElementById("partSpec").placeholder      = t.specPH;
+    document.getElementById("previewPartNo").placeholder = t.previewPH;
+    document.getElementById("fldVendor").placeholder      = t.fldVendorPH;
+    document.getElementById("fldVehicleType").placeholder = t.fldVehicleTypePH;
+    document.getElementById("fldHeight").placeholder      = t.fldHeightPH;
+    document.getElementById("fldColor").placeholder       = t.fldColorPH;
+    renderBomDisplay();
+    renderFactoryDisplay();
+
+    // update serial label
+    serialInfo.textContent = `${t.serialLabel}${model.serial ? model.serial : t.notGenerated}`;
+
+    // re-render table to update Status chips text by language
+    renderAttrTable();
+  }
+
+  function renderSapTplOptions(){
+    sapTplSel.innerHTML = SAP_TEMPLATES.map(x=>{
+      const label = currentLang === "zh" ? x.zh : x.en;
+      return `<option value="${x.key}">${label}</option>`;
+    }).join("");
+    sapTplSel.value = currentTpl;
+  }
+
+  function rebuildAttrGroupOptions(){
+    const allowed = TEMPLATE_GROUPS[currentTpl] || TEMPLATE_GROUPS.SAP_MODEL_ALL;
+
+    // 保留目前選擇（若還在 allowed 內）
+    const prev = attrGroup.value;
+    attrGroup.innerHTML = allowed.map(gKey=>{
+      const g = GROUPS[gKey];
+      const label = g ? g.label : gKey;
+      return `<option value="${gKey}">${label}</option>`;
+    }).join("");
+
+    if (allowed.includes(prev)){
+      attrGroup.value = prev;
+    } else {
+      attrGroup.value = allowed[0] || "GRP-A";
+    }
+
+    // 同步 model
+    model.group = attrGroup.value;
+    model.values = {};
+    model.serial = "";
+    model.preview = "";
+    previewPartNo.value = "";
+
+    renderAttrTable();
+  }
+
+  // ---------- 工廠別搜尋下拉 ----------
+  function initFactoryDropdown() {
+    const trigger = document.getElementById("factoryTrigger");
+    const panel   = document.getElementById("factoryPanel");
+    const search  = document.getElementById("factorySearch");
+
+    trigger.addEventListener("click", () => {
+      const open = panel.style.display !== "none";
+      panel.style.display = open ? "none" : "block";
+      if (!open) { search.value = ""; renderFactoryList(""); search.focus(); }
+    });
+
+    trigger.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); trigger.click(); }
+    });
+
+    search.addEventListener("input", () => renderFactoryList(search.value));
+
+    document.addEventListener("click", e => {
+      if (!document.getElementById("factoryDropdown").contains(e.target))
+        panel.style.display = "none";
+    });
+
+    renderFactoryList("");
+    renderFactoryDisplay();
+  }
+
+  function renderFactoryList(query) {
+    const list = document.getElementById("factoryList");
+    const q = query.toLowerCase();
+    const filtered = FACTORY_OPTIONS.filter(f =>
+      f.code.toLowerCase().includes(q) || f.label.toLowerCase().includes(q)
+    );
+    if (!filtered.length) {
+      list.innerHTML = `<div class="sd-empty">${T().noMatchItems}</div>`;
+      return;
+    }
+    list.innerHTML = filtered.map(f => {
+      const sel = model.factories.has(f.code);
+      return `<div class="sd-item${sel ? " checked" : ""}" data-code="${f.code}">
+        <svg class="sd-check" viewBox="0 0 16 16" fill="none" stroke="${sel ? "var(--btn)" : "#d1d5db"}" stroke-width="2">
+          ${sel ? '<path d="M3 8l3.5 3.5L13 4"/>' : '<rect x="1" y="1" width="14" height="14" rx="2"/>'}
+        </svg>
+        ${f.label}
+      </div>`;
+    }).join("");
+    list.querySelectorAll(".sd-item[data-code]").forEach(item => {
+      item.addEventListener("click", () => {
+        const code = item.dataset.code;
+        if (model.factories.has(code)) model.factories.delete(code);
+        else model.factories.add(code);
+        renderFactoryList(document.getElementById("factorySearch").value);
+        renderFactoryDisplay();
+        hideAlert();
+      });
+    });
+  }
+
+  function renderFactoryDisplay() {
+    const display = document.getElementById("factoryDisplay");
+    const t = T();
+    if (model.factories.size === 0) {
+      display.innerHTML = `<span style="color:var(--muted)">${t.factoryPlaceholder}</span>`;
+      return;
+    }
+    display.innerHTML = [...model.factories].map(code => {
+      const opt = FACTORY_OPTIONS.find(f => f.code === code);
+      const label = opt ? opt.label : code;
+      return `<span class="sd-tag">${label}<span class="rm" data-code="${code}">×</span></span>`;
+    }).join("");
+    display.querySelectorAll(".rm[data-code]").forEach(btn => {
+      btn.addEventListener("click", e => {
+        e.stopPropagation();
+        model.factories.delete(btn.dataset.code);
+        renderFactoryDisplay();
+        renderFactoryList(document.getElementById("factorySearch").value || "");
+        hideAlert();
+      });
+    });
+  }
+
+  // ---------- 既有 BOM 搜尋下拉 ----------
+  let selectedBom = "";
+
+  function initBomDropdown() {
+    const trigger = document.getElementById("bomTrigger");
+    const panel   = document.getElementById("bomPanel");
+    const search  = document.getElementById("bomSearch");
+
+    trigger.addEventListener("click", () => {
+      if (trigger.getAttribute("aria-disabled") === "true") return;
+      const open = panel.style.display !== "none";
+      panel.style.display = open ? "none" : "block";
+      if (!open) { search.value = ""; renderBomList2(""); search.focus(); }
+    });
+
+    search.addEventListener("input", () => renderBomList2(search.value));
+
+    document.addEventListener("click", e => {
+      if (!document.getElementById("bomDropdown").contains(e.target))
+        panel.style.display = "none";
+    });
+
+    renderBomList2("");
+  }
+
+  function renderBomList2(query) {
+    const list = document.getElementById("bomList2");
+    const q = query.toLowerCase();
+    const filtered = BOM_OPTIONS.filter(b =>
+      b.value.toLowerCase().includes(q) || b.label.toLowerCase().includes(q)
+    );
+    if (!filtered.length) {
+      list.innerHTML = `<div class="sd-empty">${T().noMatchItems}</div>`;
+      return;
+    }
+    list.innerHTML = filtered.map(b => {
+      const sel = selectedBom === b.value;
+      return `<div class="sd-item${sel ? " checked" : ""}" data-value="${b.value}">${b.label}</div>`;
+    }).join("");
+    list.querySelectorAll(".sd-item[data-value]").forEach(item => {
+      item.addEventListener("click", () => {
+        selectedBom = item.dataset.value;
+        document.getElementById("bomPanel").style.display = "none";
+        renderBomDisplay();
+        const t = T();
+        applyPreset(selectedBom);
+        model.extra = {};
+        renderExtraFields(model.group);
+        showAlert("ok", t.copiedTitle, t.copiedMsg.replace("{bom}", selectedBom), t.copiedHint);
+      });
+    });
+  }
+
+  function renderBomDisplay() {
+    const display = document.getElementById("bomDisplay");
+    const t = T();
+    if (!selectedBom) {
+      display.innerHTML = `<span style="color:var(--muted)">${t.optSelectBom}</span>`;
+    } else {
+      const opt = BOM_OPTIONS.find(b => b.value === selectedBom);
+      display.textContent = opt ? opt.label : selectedBom;
+    }
+  }
+
+  function setBomDropdownEnabled(enabled) {
+    const trigger = document.getElementById("bomTrigger");
+    trigger.setAttribute("aria-disabled", enabled ? "false" : "true");
+    trigger.style.pointerEvents = enabled ? "" : "none";
+    trigger.style.opacity = enabled ? "" : ".6";
+  }
+
+  // ---------- 工具函式 ----------
+  function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  // ---------- 額外特性值欄位 ----------
+  function renderExtraFields(group) {
+    const t = T();
+    const active = GROUP_EXTRA_FIELDS[group] || [];
+    Object.entries(EXTRA_FIELD_DEF).forEach(([key, def]) => {
+      const input = document.getElementById(def.id);
+      const show = active.includes(key);
+      document.getElementById(`wrap${capitalize(key)}`).style.display = show ? "" : "none";
+      input.value = model.extra[key] || "";
+      if (def.phKey) input.placeholder = t[def.phKey] || "";
+    });
+  }
+
+  function initExtraFieldEvents() {
+    Object.entries(EXTRA_FIELD_DEF).forEach(([key, def]) => {
+      document.getElementById(def.id).addEventListener("input", e => {
+        model.extra[key] = e.target.value;
+        hideAlert();
+      });
+    });
+  }
+
+  // ---------- 解析品號 ----------
+  function parsePartNo(str) {
+    const s = str.trim();
+    for (const [gKey, gDef] of Object.entries(GROUPS)) {
+      const totalLen = gDef.segments.reduce((acc, seg) => acc + seg.length, 0);
+      if (s.length === totalLen) {
+        let pos = 0, vals = {};
+        for (const seg of gDef.segments) {
+          const chunk = s.slice(pos, pos + seg.length);
+          if (seg.code !== "SERIAL") vals[seg.code] = chunk;
+          pos += seg.length;
+        }
+        return { group: gKey, values: vals };
+      }
+    }
+    return null;
+  }
+
+  // ---------- 規格描述換行 ----------
+  function enforceLineWrap(text, maxLine = 70, maxTotal = 2000) {
+    if (text.length > maxTotal) text = text.slice(0, maxTotal);
+    const lines = text.split('\n');
+    const out = [];
+    for (const line of lines) {
+      if (line.length <= maxLine) { out.push(line); continue; }
+      let rem = line;
+      while (rem.length > maxLine) { out.push(rem.slice(0, maxLine)); rem = rem.slice(maxLine); }
+      if (rem) out.push(rem);
+    }
+    return out.join('\n');
+  }
+
+  // ---------- 原本你的函式（基本不動，只在狀態文字用 i18n） ----------
+  function showAlert(kind, title, msg, hint=""){
+    alertBox.className = "alert show " + (kind || "");
+    alertTitle.textContent = title;
+    alertMsg.textContent = msg;
+    alertHint.textContent = hint;
+  }
+  function hideAlert(){
+    alertBox.className = "alert";
+    alertTitle.textContent = "";
+    alertMsg.textContent = "";
+    alertHint.textContent = "";
+  }
+
+  function padSerial(n, len){
+    const s = String(n);
+    return s.length >= len ? s : "0".repeat(len - s.length) + s;
+  }
+
+  function serialKey(group){ return `SERIAL_COUNTER_${group}`; }
+
+  function getNextSerial(group){
+    const len = GROUPS[group].serialLen;
+    const key = serialKey(group);
+    const curr = Number(localStorage.getItem(key) || "0");
+    const next = curr + 1;
+    localStorage.setItem(key, String(next));
+    return padSerial(next, len);
+  }
+
+  function buildPreview(group, values, serial){
+    const segs = GROUPS[group].segments;
+    let out = "";
+    for (const seg of segs){
+      if (seg.code === "SERIAL") out += (serial || "");
+      else out += (values[seg.code] ?? "");
+    }
+    return out;
+  }
+
+  function validateModel(group, values, t){
+    const segs = GROUPS[group].segments;
+    const errors = [];
+    for (const seg of segs){
+      if (seg.code === "SERIAL") continue;
+      const v = (values[seg.code] ?? "").trim();
+      if (seg.required && !v){
+        errors.push(t.errMissingAttr.replace("{code}", seg.code).replace("{meaning}", seg.meaning));
+        continue;
+      }
+      if (v && v.length !== seg.length){
+        errors.push(t.errWrongLen.replace("{code}", seg.code).replace("{len}", seg.length).replace("{curr}", v.length));
+      }
+      if (seg.type === "select" && v){
+        const statusMap = OPTION_STATUS[seg.code] || {};
+        if (statusMap[v] === false){
+          errors.push(t.errDisabledOpt.replace("{code}", seg.code).replace("{val}", v));
+        }
+      }
+    }
+    return errors;
+  }
+
+  function renderAttrTable(){
+    const t = T();
+    const group = model.group;
+    const segs = GROUPS[group].segments;
+
+    attrTableBody.innerHTML = "";
+    segs.forEach(seg => {
+      const tr = document.createElement("tr");
+
+      const tdSeq = document.createElement("td");
+      tdSeq.textContent = String(seg.seq);
+      tdSeq.style.fontWeight = "900";
+      tr.appendChild(tdSeq);
+
+      const tdCode = document.createElement("td");
+      tdCode.innerHTML = `<span class="mono" style="font-weight:900;">${seg.code}</span>`;
+      tr.appendChild(tdCode);
+
+      const tdMeaning = document.createElement("td");
+      tdMeaning.textContent = (t.segMeanings && t.segMeanings[seg.code]) || seg.meaning;
+      tr.appendChild(tdMeaning);
+
+      const tdLen = document.createElement("td");
+      tdLen.textContent = String(seg.length);
+      tr.appendChild(tdLen);
+
+      const tdVal = document.createElement("td");
+
+      if (seg.type === "system"){
+        const input = document.createElement("input");
+        input.className = "mono";
+        input.value = model.serial ? model.serial : "";
+        input.placeholder = t.generateOnConfirm;
+        input.readOnly = true;
+        input.style.width = "100%";
+        input.style.padding = "10px";
+        input.style.border = "1px solid var(--line)";
+        input.style.borderRadius = "8px";
+        input.style.background = "#f2f4f7";
+        tdVal.appendChild(input);
+      } else if (seg.type === "select"){
+        const sel = document.createElement("select");
+        sel.style.width="100%";
+        sel.style.padding="10px";
+        sel.style.border="1px solid var(--line)";
+        sel.style.borderRadius="8px";
+        sel.innerHTML = `<option value="">${t.selectOption}</option>` + seg.options.map(o=>{
+          const active = (OPTION_STATUS[seg.code]?.[o] !== false);
+          const label = active ? o : `${o}${t.disabledSuffix}`;
+          return `<option value="${o}" ${active ? "" : "disabled"}>${label}</option>`;
+        }).join("");
+        sel.value = model.values[seg.code] ?? "";
+        sel.addEventListener("change", () => {
+          model.values[seg.code] = sel.value;
+          hideAlert();
+        });
+        tdVal.appendChild(sel);
+      } else {
+        const input = document.createElement("input");
+        input.placeholder = seg.placeholder || "";
+        input.value = model.values[seg.code] ?? "";
+        input.addEventListener("input", () => {
+          model.values[seg.code] = input.value;
+          hideAlert();
+        });
+        input.style.width="100%";
+        input.style.padding="10px";
+        input.style.border="1px solid var(--line)";
+        input.style.borderRadius="8px";
+        tdVal.appendChild(input);
+      }
+      tr.appendChild(tdVal);
+
+      const tdStatus = document.createElement("td");
+      if (seg.type === "system"){
+        tdStatus.innerHTML = `<span class="chip">${t.statusSystem}</span>`;
+      } else if (seg.type === "select"){
+        const v = model.values[seg.code];
+        const active = v ? (OPTION_STATUS[seg.code]?.[v] !== false) : true;
+        tdStatus.innerHTML = active
+          ? `<span class="chip">${t.statusEnabled}</span>`
+          : `<span class="chip" style="color:#b91c1c;border-color:#fecaca;background:#fef2f2;">${t.statusDisabled}</span>`;
+      } else {
+        tdStatus.innerHTML = `<span class="chip">${t.statusEditable}</span>`;
+      }
+      tr.appendChild(tdStatus);
+
+      attrTableBody.appendChild(tr);
+    });
+
+    serialInfo.textContent = `${t.serialLabel}${model.serial ? model.serial : t.notGenerated}`;
+    previewPartNo.value = model.preview || "";
+  }
+
+  function resetForm(toGroup){
+    hideAlert();
+    model.group = toGroup || attrGroup.value;
+    model.values = {};
+    model.serial = "";
+    model.preview = "";
+    model.factories = new Set();
+    model.extra = {};
+    previewPartNo.value = "";
+    attrGroup.disabled = false;
+    serialInfo.textContent = `${T().serialLabel}${T().notGenerated}`;
+    renderAttrTable();
+    renderFactoryDisplay();
+    renderFactoryList("");
+    renderExtraFields(model.group);
+  }
+
+  function applyPreset(bomNo){
+    const preset = BOM_PRESETS[bomNo];
+    if (!preset) return;
+
+    attrGroup.value = preset.attrGroup;
+    model.group = preset.attrGroup;
+
+    model.values = { ...preset.values };
+    partSpec.value = preset.partSpec;
+    document.getElementById("specCounter").textContent = partSpec.value.length;
+
+    model.serial = "";
+    model.preview = "";
+    previewPartNo.value = "";
+    renderAttrTable();
+  }
+
+  // Event: creation method change
+  creationMethod.addEventListener("change", () => {
+    const mode = creationMethod.value;
+    const t = T();
+    document.getElementById("existingBomWrap").style.display = mode === "direct" ? "none" : "";
+    document.getElementById("directPartNoWrap").style.display = mode === "direct" ? "" : "none";
+    setBomDropdownEnabled(mode === "copy");
+    attrGroup.disabled = (mode === "copy");
+
+    if (mode !== "copy") {
+      selectedBom = "";
+      renderBomDisplay();
+    }
+
+    if (mode === "blank") {
+      directPartNo.value = "";
+      resetForm(attrGroup.value);
+      showAlert("warn", t.initHintTitle, t.modeBlankMsg);
+    } else if (mode === "copy") {
+      directPartNo.value = "";
+      showAlert("warn", t.initHintTitle, t.modeCopyMsg);
+    } else if (mode === "direct") {
+      resetForm(attrGroup.value);
+      showAlert("warn", t.initHintTitle, t.modeDirectMsg);
+    }
+  });
+
+  // Event: directPartNo input
+  directPartNo.addEventListener("input", () => {
+    const t = T();
+    const result = parsePartNo(directPartNo.value);
+    if (!result) {
+      if (directPartNo.value.trim().length >= 10)
+        showAlert("bad", t.parseFailTitle, t.parseFailMsg);
+      return;
+    }
+    attrGroup.value = result.group;
+    model.group = result.group;
+    model.values = result.values;
+    model.serial = "";
+    model.preview = "";
+    previewPartNo.value = "";
+    renderAttrTable();
+    showAlert("ok", t.parsedTitle, `${t.parsedMsg}${result.group}`, t.parsedHint);
+  });
+
+  // Event: partSpec input (auto line-wrap + counter)
+  partSpec.addEventListener("input", () => {
+    const wrapped = enforceLineWrap(partSpec.value);
+    if (wrapped !== partSpec.value) {
+      const pos = partSpec.selectionStart;
+      partSpec.value = wrapped;
+      partSpec.selectionStart = partSpec.selectionEnd = Math.min(pos, wrapped.length);
+    }
+    document.getElementById("specCounter").textContent = partSpec.value.length;
+  });
+
+  // Event: attribute group change (clear values & reload list)
+  attrGroup.addEventListener("change", () => {
+    const t = T();
+    const newGroup = attrGroup.value;
+    model.group = newGroup;
+    model.values = {};
+    model.serial = "";
+    model.preview = "";
+    model.extra = {};
+    previewPartNo.value = "";
+    renderAttrTable();
+    renderExtraFields(newGroup);
+    showAlert("warn", t.groupChangedTitle, t.groupChangedMsg);
+  });
+
+  // Confirm
+  btnConfirm.addEventListener("click", () => {
+    const t = T();
+    hideAlert();
+
+    if (model.factories.size === 0) {
+      showAlert("bad", t.validateFailTitle, t.errFactory);
+      return;
+    }
+
+    const activeExtras = GROUP_EXTRA_FIELDS[model.group] || [];
+    for (const key of activeExtras) {
+      if (!(model.extra[key] || "").trim()) {
+        const def = EXTRA_FIELD_DEF[key];
+        showAlert("bad", t.validateFailTitle, t.extraRequired.replace("{field}", t[def.i18nKey]));
+        return;
+      }
+    }
+
+    const errs = validateModel(model.group, model.values, t);
+    if (errs.length){
+      showAlert("bad", t.validateFailTitle, errs[0], errs.length > 1 ? t.moreErrors.replace("{n}", errs.length - 1) : "");
+      return;
+    }
+
+    const serial = getNextSerial(model.group);
+    model.serial = serial;
+
+    const preview = buildPreview(model.group, model.values, model.serial);
+    model.preview = preview;
+    previewPartNo.value = preview;
+    serialInfo.textContent = `${t.serialLabel}${serial}`;
+
+    const errs2 = validateModel(model.group, model.values, t);
+    if (errs2.length){
+      showAlert("bad", t.preSapFailTitle, errs2[0], t.preSapFailHint);
+      return;
+    }
+
+    const fail = sapFailToggle.checked;
+    if (fail){
+      showAlert("bad", t.sapWriteFailTitle, t.sapWriteFailMsg, t.sapWriteFailHint);
+      return;
+    }
+
+    showAlert("ok", t.successTitle, `${t.newPartGenerated}${preview}`, t.successHint);
+    renderAttrTable();
+  });
+
+  // Reset
+  btnReset.addEventListener("click", () => {
+    const t = T();
+    partSpec.value = "";
+    document.getElementById("specCounter").textContent = "0";
+    previewPartNo.value = "";
+    resetForm(attrGroup.value);
+    showAlert("warn", t.resetTitle, t.resetMsg);
+  });
+
+  // Render BOM list (demo)
+  const bomList = document.getElementById("bomList");
+  function renderBomList(){
+    const rows = [
+      {bom:"BOM-1001", product:"Model A", origin:"Korea", note:"Base"},
+      {bom:"BOM-1002", product:"Model A", origin:"Korea", note:"Rev.B / ECN"},
+      {bom:"BOM-2001", product:"Model B", origin:"Vietnam", note:"Different serial length group"},
+    ];
+    bomList.innerHTML = rows.map(r=>`
+      <tr>
+        <td class="expander">›</td>
+        <td class="mono">${r.bom}</td>
+        <td>${r.product}</td>
+        <td>${r.origin}</td>
+        <td>${r.note}</td>
+      </tr>
+    `).join("");
+  }
+
+  // ✅ 新增：語言 / 模板事件（不影響原主流程）
+  langSel.addEventListener("change", ()=>{
+    currentLang = langSel.value;
+    localStorage.setItem(LS_LANG, currentLang);
+    renderSapTplOptions();
+    applyTexts();
+  });
+
+  sapTplSel.addEventListener("change", ()=>{
+    currentTpl = sapTplSel.value;
+    localStorage.setItem(LS_SAPTPL, currentTpl);
+    const t = T();
+    rebuildAttrGroupOptions();
+    showAlert("warn", t.sapTplSwitchedTitle, t.sapTplSwitchedMsg);
+  });
+
+  // Initialize
+  (function init(){
+    loadFromAttributeGroup();
+    langSel.value = currentLang;
+    renderSapTplOptions();
+
+    rebuildAttrGroupOptions();
+
+    renderBomList();
+    initFactoryDropdown();
+    initBomDropdown();
+    initExtraFieldEvents();
+    resetForm(attrGroup.value);
+    applyTexts();
+
+    const t = T();
+    showAlert("warn", t.initHintTitle, t.initHintMsg);
+  })();
+</script>
+</body>
+</html>

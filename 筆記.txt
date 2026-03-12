@@ -1,0 +1,31 @@
+包裝檔下載 = 下載excel
+上傳包裝檔 = 上傳excel
+
+京永原型這邊新增了以下內容
+-將新料號取號 獨立出左側菜單
+-新增料號屬性組維護頁面
+-增加中英文切換交互、新增SAP MODEL功能，業主反饋這是提供我們篩選對應SAP之後 帶入對應的欄位資料
+-增加帳號管理系統，維護廠商/客戶的帳號，查詢BOM權限範圍 
+
+https://3t5n5s.axshare.com/?g=4
+
+
+
+https://3t5n5s.axshare.com/?g=4&id=iwif80&p=%E4%B8%BB%E9%A0%81%E9%9D%A2
+
+
+----------------
+
+https://60.248.220.199:10443/remote/login?lang=en
+
+
+VPN：
+User:ec_guest
+Pass:Jwq%834ufh8n
+
+SQL：
+IP:172.16.1.20
+User:
+anj_ec
+Pass:
+HyTr$3Wr92ud

@@ -1,0 +1,16 @@
+### openfortivpn configuration example
+### Copy this file to vpn.conf and fill in the values
+### This file should NOT be committed to git
+
+host = your-vpn-server-ip
+port = 10443
+username = your-vpn-username
+password = your-vpn-password
+
+# 信任憑證 hash（首次連線時會顯示）
+# 執行 openfortivpn 時如果看到 "trusted-cert = xxx" 提示，把 hash 填入這裡
+trusted-cert = your-certificate-hash-here
+
+# 不修改 DNS 設定
+set-dns = 0
+pppd-use-peerdns = 0

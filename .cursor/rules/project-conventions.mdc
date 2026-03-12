@@ -1,0 +1,15 @@
+---
+description: 專案共用規範與撰寫慣例
+alwaysApply: true
+---
+
+# Jingyong 專案規範
+
+- **語言**：與使用者溝通、註解與文件請使用繁體中文。
+- **前端**：Vue 3，元件與頁面放在 `fronted/src/`。
+- **後端**：Node.js / Express，路由與邏輯在 `backend/src/`。
+- **風格**：維持既有程式碼風格，變數與檔名使用 camelCase 或 kebab-case（依專案既有慣例）。
+
+不要紫色
+盡量用套件樣式，盡量不要寫css
+會有雙語套件，所有前端頁面都要使用
