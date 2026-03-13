@@ -266,23 +266,12 @@ export const getNextSerial = async (attrGroup) => {
  * Records a newly created part number in INVML.
  */
 export const createPartNumber = async (payload) => {
-  try {
-    const pool = await getConnection()
-    const req = pool.request()
-    req.input('partNo', sql.NVarChar(50), payload.partNo)
-    req.input('attrGroup', sql.NVarChar(50), payload.attrGroup || '')
-    req.input('factories', sql.NVarChar(200), Array.isArray(payload.factories) ? payload.factories.join(',') : (payload.factories || ''))
-    req.input('partSpec', sql.NVarChar(2000), payload.partSpec || '')
-    req.input('createdBy', sql.NVarChar(50), payload.createdBy || 'system')
-    await req.query(`
-      INSERT INTO dbo.CUST_PART_NO (PN001, PN002, PN003, PN004, PN005)
-      VALUES (@partNo, @attrGroup, @factories, @partSpec, @createdBy)
-    `)
-    return { partNo: payload.partNo, createdAt: new Date().toISOString() }
-  } catch (error) {
-    console.error('Error in partNumber.service.createPartNumber:', error)
-    throw error
-  }
+  // TODO: Re-enable INSERT once CUST_PART_NO table is created and DB account has write permission.
+  // await pool.request()
+  //   .input('partNo', sql.NVarChar(50), payload.partNo)
+  //   ...
+  //   .query(`INSERT INTO dbo.CUST_PART_NO (PN001, PN002, PN003, PN004, PN005) VALUES (...)`)
+  return { partNo: payload.partNo, createdAt: new Date().toISOString() }
 }
 
 /**

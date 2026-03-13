@@ -6,7 +6,7 @@ let pool = null
 export const getConnection = async () => {
   try {
     if (!pool) {
-      pool = await sql.connect(dbConfig)
+pool = await sql.connect(dbConfig)
       console.log('✅ Database connected successfully')
     }
     return pool

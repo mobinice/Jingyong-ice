@@ -107,6 +107,8 @@ export default {
     // SAP template
     sapTemplate: 'SAP Template',
     sapTemplatePlaceholder: '-- Select SAP Template --',
+    bomEmptyHint: 'No BOM records found. Please check if dbo.bom has data.',
+    bomLoadError: 'Failed to load BOM list. Please check backend service and database connection.',
     // Direct input
     directPartNoLabel: 'Enter Part No',
     directPartNoPH: 'Enter full part number (e.g. 5A001000042)',

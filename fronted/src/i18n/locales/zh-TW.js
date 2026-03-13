@@ -107,6 +107,8 @@ export default {
     // SAP 模板
     sapTemplate: 'SAP 模板',
     sapTemplatePlaceholder: '-- 請選擇 SAP 模板 --',
+    bomEmptyHint: 'BOM 清單無資料，請確認資料庫是否有 dbo.bom 記錄',
+    bomLoadError: '載入 BOM 清單失敗，請確認後端服務及資料庫連線',
     // 直接輸入
     directPartNoLabel: '直接輸入品號',
     directPartNoPH: '請輸入完整品號（如：5A001000042）',

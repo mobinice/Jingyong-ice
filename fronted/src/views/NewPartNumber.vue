@@ -1,17 +1,21 @@
 <template>
   <div>
-    <!-- 頁面標題 -->
-    <el-row :gutter="20" style="margin-bottom: 20px">
-      <el-col :span="24">
-        <h1 style="margin: 0; font-size: 24px; font-weight: 600">{{ t('partNumber.title') }}</h1>
-      </el-col>
-    </el-row>
+    <!-- 頁面標題 + SAP 模板（右上角） -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px">
+      <h1 style="margin: 0; font-size: 24px; font-weight: 600">{{ t('partNumber.title') }}</h1>
+      <div style="display: flex; align-items: center; gap: 8px">
+        <span style="font-size: 14px; color: #606266; white-space: nowrap">{{ t('partNumber.sapTemplate') }}</span>
+        <el-select v-model="form.sapTemplate" :placeholder="t('partNumber.sapTemplatePlaceholder')" style="width: 220px">
+          <el-option v-for="item in SAP_TEMPLATE_OPTIONS" :key="item.value" :label="item.label" :value="item.value" />
+        </el-select>
+      </div>
+    </div>
 
     <!-- 建立細節區塊 -->
     <el-card shadow="never" style="margin-bottom: 20px">
       <el-form :model="form" label-width="180px">
 
-        <!-- Row 1: 建立方式 / SAP 模板 / 屬性群組 -->
+        <!-- Row 1: 建立方式 / 既有BOM或直接輸入（切換）/ 屬性群組 -->
         <el-row :gutter="20">
           <el-col :span="8">
             <el-form-item :label="t('partNumber.creationMethod')">
@@ -21,10 +25,44 @@
             </el-form-item>
           </el-col>
           <el-col :span="8">
-            <el-form-item :label="t('partNumber.sapTemplate')">
-              <el-select v-model="form.sapTemplate" :placeholder="t('partNumber.sapTemplatePlaceholder')" style="width: 100%">
-                <el-option v-for="item in SAP_TEMPLATE_OPTIONS" :key="item.value" :label="item.label" :value="item.value" />
+            <!-- copy 模式：既有 BOM -->
+            <el-form-item v-if="form.creationMethod === 'copy'" :label="t('partNumber.existingBOM')">
+              <el-select
+                v-model="form.existingBOM"
+                filterable
+                remote
+                :remote-method="loadBOMList"
+                :loading="bomListLoading"
+                :placeholder="t('partNumber.placeholderSelectBOM')"
+                style="width: 100%"
+              >
+                <el-option v-for="item in existingBOMOptions" :key="item.value" :label="item.label" :value="item.value" />
               </el-select>
+              <el-alert
+                v-if="bomLoadError"
+                type="error"
+                :title="t('partNumber.bomLoadError')"
+                :closable="false"
+                show-icon
+                style="margin-top: 4px"
+              />
+            </el-form-item>
+            <!-- direct 模式：直接輸入品號 -->
+            <el-form-item v-else-if="form.creationMethod === 'direct'" :label="t('partNumber.directPartNoLabel')">
+              <el-input
+                v-model="form.directPartNo"
+                :placeholder="t('partNumber.directPartNoPH')"
+                style="width: 100%"
+              />
+              <el-alert
+                v-if="parseResult !== null"
+                :type="parseResult.ok ? 'success' : 'error'"
+                :title="parseResult.ok ? t('partNumber.parsedTitle') : t('partNumber.parseFailTitle')"
+                :description="parseResult.ok ? `${t('partNumber.parsedMsg')}: ${form.directPartNo}` : t('partNumber.parseFailMsg')"
+                show-icon
+                :closable="false"
+                style="margin-top: 4px"
+              />
             </el-form-item>
           </el-col>
           <el-col :span="8">
@@ -41,57 +79,18 @@
           </el-col>
         </el-row>
 
-        <!-- Row 2a: 既有 BOM（複製模式） -->
-        <el-row v-if="form.creationMethod === 'copy'" :gutter="20">
-          <el-col :span="8">
-            <el-form-item :label="t('partNumber.existingBOM')">
-              <el-select
-                v-model="form.existingBOM"
-                filterable
-                remote
-                :remote-method="loadBOMList"
-                :loading="bomListLoading"
-                :placeholder="t('partNumber.placeholderSelectBOM')"
-                style="width: 100%"
-              >
-                <el-option v-for="item in existingBOMOptions" :key="item.value" :label="item.label" :value="item.value" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-
-        <!-- Row 2b: 直接輸入品號（直接輸入模式） -->
-        <el-row v-if="form.creationMethod === 'direct'" :gutter="20">
-          <el-col :span="8">
-            <el-form-item :label="t('partNumber.directPartNoLabel')">
-              <el-input
-                v-model="form.directPartNo"
-                :placeholder="t('partNumber.directPartNoPH')"
-                style="width: 100%"
-              />
-            </el-form-item>
-          </el-col>
-          <el-col :span="16">
-            <el-alert
-              v-if="parseResult !== null"
-              :type="parseResult.ok ? 'success' : 'error'"
-              :title="parseResult.ok ? t('partNumber.parsedTitle') : t('partNumber.parseFailTitle')"
-              :description="parseResult.ok ? `${t('partNumber.parsedMsg')}: ${form.directPartNo}` : t('partNumber.parseFailMsg')"
-              show-icon
-              :closable="false"
-              style="margin-top: 4px"
-            />
-          </el-col>
-        </el-row>
-
-        <!-- Row 3: 料件名稱 / 規格說明 / 新料號預覽 -->
+        <!-- Row 2: 料件名稱 -->
         <el-row :gutter="20">
           <el-col :span="8">
             <el-form-item :label="t('partNumber.partName')">
               <el-input v-model="form.partName" :placeholder="t('partNumber.partNamePlaceholder')" style="width: 100%" />
             </el-form-item>
           </el-col>
-          <el-col :span="8">
+        </el-row>
+
+        <!-- Row 3: 規格說明（span 16）/ 新料號預覽（span 8） -->
+        <el-row :gutter="20">
+          <el-col :span="16">
             <el-form-item :label="t('partNumber.specDescription')">
               <el-input v-model="form.specDescription" type="textarea" :rows="3" :maxlength="2000" show-word-limit :placeholder="t('partNumber.specPlaceholder')" style="width: 100%" />
             </el-form-item>
@@ -103,7 +102,44 @@
           </el-col>
         </el-row>
 
-        <!-- Row 4: 工廠別 + 額外特性 -->
+        <!-- 額外特性（全寬，grid 下方） -->
+        <template v-if="form.attributeGroup">
+          <!-- GRP-A：廠商（全寬） -->
+          <el-row v-if="form.attributeGroup === 'GRP-A'" :gutter="20">
+            <el-col :span="24">
+              <el-form-item :label="t('partNumber.fldVendor')">
+                <el-input v-model="form.extra.vendor" :placeholder="t('partNumber.fldVendorPH')" style="width: 100%" />
+              </el-form-item>
+            </el-col>
+          </el-row>
+
+          <!-- GRP-B：車種 / 架高 / 烤漆色（各自獨立全寬列） -->
+          <template v-if="form.attributeGroup === 'GRP-B'">
+            <el-row :gutter="20">
+              <el-col :span="24">
+                <el-form-item :label="t('partNumber.fldVehicleType')">
+                  <el-input v-model="form.extra.vehicleType" :placeholder="t('partNumber.fldVehicleTypePH')" style="width: 100%" />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="24">
+                <el-form-item :label="t('partNumber.fldHeight')">
+                  <el-input v-model="form.extra.height" :placeholder="t('partNumber.fldHeightPH')" style="width: 100%" />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="24">
+                <el-form-item :label="t('partNumber.fldColor')">
+                  <el-input v-model="form.extra.color" :placeholder="t('partNumber.fldColorPH')" style="width: 100%" />
+                </el-form-item>
+              </el-col>
+            </el-row>
+          </template>
+        </template>
+
+        <!-- 工廠別 -->
         <el-row v-if="form.attributeGroup" :gutter="20">
           <el-col :span="8">
             <el-form-item :label="t('partNumber.factoryLabel')">
@@ -117,35 +153,9 @@
               </el-select>
             </el-form-item>
           </el-col>
-
-          <!-- GRP-A 額外特性：廠商 -->
-          <el-col v-if="form.attributeGroup === 'GRP-A'" :span="8">
-            <el-form-item :label="t('partNumber.fldVendor')">
-              <el-input v-model="form.extra.vendor" :placeholder="t('partNumber.fldVendorPH')" style="width: 100%" />
-            </el-form-item>
-          </el-col>
-
-          <!-- GRP-B 額外特性：車種 / 架高 / 烤漆色 -->
-          <template v-if="form.attributeGroup === 'GRP-B'">
-            <el-col :span="8">
-              <el-form-item :label="t('partNumber.fldVehicleType')">
-                <el-input v-model="form.extra.vehicleType" :placeholder="t('partNumber.fldVehicleTypePH')" style="width: 100%" />
-              </el-form-item>
-            </el-col>
-            <el-col :span="8">
-              <el-form-item :label="t('partNumber.fldHeight')">
-                <el-input v-model="form.extra.height" :placeholder="t('partNumber.fldHeightPH')" style="width: 100%" />
-              </el-form-item>
-            </el-col>
-            <el-col :span="8">
-              <el-form-item :label="t('partNumber.fldColor')">
-                <el-input v-model="form.extra.color" :placeholder="t('partNumber.fldColorPH')" style="width: 100%" />
-              </el-form-item>
-            </el-col>
-          </template>
         </el-row>
 
-        <!-- Row 5: SAP 失敗模擬 -->
+        <!-- SAP 失敗模擬 -->
         <el-row :gutter="20">
           <el-col :span="16">
             <el-form-item :label="t('partNumber.sapFailTitle')">
@@ -302,16 +312,23 @@ const parseResult = ref(null)   // null | { ok: boolean }
 
 const existingBOMOptions = ref([])
 const bomListLoading = ref(false)
+const bomLoadError = ref(false)
 
 async function loadBOMList(keyword = '') {
   bomListLoading.value = true
+  bomLoadError.value = false
   try {
     const res = await getBOMList(keyword)
     if (res.success && Array.isArray(res.data)) {
       existingBOMOptions.value = res.data
+      if (res.data.length === 0 && !keyword) {
+        ElMessage.warning(t('partNumber.bomEmptyHint'))
+      }
     }
   } catch (e) {
     console.warn('Failed to load BOM list:', e)
+    bomLoadError.value = true
+    ElMessage.error(t('partNumber.bomLoadError'))
   } finally {
     bomListLoading.value = false
   }
